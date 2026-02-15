@@ -14,18 +14,20 @@ import {
 } from "./utils";
 
 export const getOrCreateHostingConfig = async (): Promise<HostingConfig | null> => {
-    const existing = (await getPuter()?.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
+    const puter = getPuter();
+    if (!puter) return null;
+    const existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
 
     if(existing?.subdomain) return { subdomain: existing.subdomain };
 
     const subdomain = createHostingSlug();
 
     try {
-        const created = await getPuter()?.hosting.create(subdomain, '.');
+        const created = await puter.hosting.create(subdomain, '.');
 
         const record = { subdomain: created.subdomain };
 
-        await getPuter()?.kv.set(HOSTING_CONFIG_KEY, record);
+        await puter.kv.set(HOSTING_CONFIG_KEY, record);
 
         return record;
     } catch (e) {
@@ -39,6 +41,9 @@ export const uploadImageToHosting = async ({ hosting, url, projectId, label }: S
     if(isHostedUrl(url)) return { url };
 
     try {
+        const puter = getPuter();
+        if (!puter) return null;
+
         const resolved = label === "rendered"
             ? await imageUrlToPngBlob(url)
                 .then((blob) => blob ? { blob, contentType: 'image/png' }: null)
@@ -55,8 +60,8 @@ export const uploadImageToHosting = async ({ hosting, url, projectId, label }: S
             type: contentType,
         });
 
-        await getPuter()?.fs.mkdir(dir, { createMissingParents: true });
-        await getPuter()?.fs.write(filePath, uploadFile);
+        await puter.fs.mkdir(dir, { createMissingParents: true });
+        await puter.fs.write(filePath, uploadFile);
 
         const hostedUrl = getHostedUrl({ subdomain: hosting.subdomain }, filePath);
 

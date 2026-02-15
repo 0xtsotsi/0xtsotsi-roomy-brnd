@@ -49,7 +49,9 @@ export const db = {
 
     async getUser(id: string): Promise<User | null> {
         try {
-            const data = await getPuter()?.kv.get(KEYS.USER(id));
+            const puter = getPuter();
+            if (!puter) return null;
+            const data = await puter.kv.get(KEYS.USER(id));
             return data as User | null;
         } catch {
             return null;
@@ -58,7 +60,9 @@ export const db = {
 
     async getUserByEmail(email: string): Promise<User | null> {
         try {
-            const userId = await getPuter()?.kv.get(KEYS.USER_BY_EMAIL(email));
+            const puter = getPuter();
+            if (!puter) return null;
+            const userId = await puter.kv.get(KEYS.USER_BY_EMAIL(email));
             if (!userId) return null;
             return await this.getUser(userId as string);
         } catch {
@@ -67,8 +71,10 @@ export const db = {
     },
 
     async createUser(user: User): Promise<User> {
-        await getPuter()?.kv.set(KEYS.USER(user.id), user);
-        await getPuter()?.kv.set(KEYS.USER_BY_EMAIL(user.email), user.id);
+        const puter = getPuter();
+        if (!puter) throw new Error('Puter not ready');
+        await puter.kv.set(KEYS.USER(user.id), user);
+        await puter.kv.set(KEYS.USER_BY_EMAIL(user.email), user.id);
         return user;
     },
 
@@ -76,7 +82,9 @@ export const db = {
         const user = await this.getUser(id);
         if (!user) return null;
         const updated = { ...user, ...updates };
-        await getPuter()?.kv.set(KEYS.USER(id), updated);
+        const puter = getPuter();
+        if (!puter) return null;
+        await puter.kv.set(KEYS.USER(id), updated);
         return updated;
     },
 
@@ -84,7 +92,9 @@ export const db = {
 
     async getProject(id: string): Promise<Project | null> {
         try {
-            const data = await getPuter()?.kv.get(KEYS.PROJECT(id));
+            const puter = getPuter();
+            if (!puter) return null;
+            const data = await puter.kv.get(KEYS.PROJECT(id));
             return data as Project | null;
         } catch {
             return null;
@@ -92,12 +102,14 @@ export const db = {
     },
 
     async createProject(project: Project): Promise<Project> {
-        await getPuter()?.kv.set(KEYS.PROJECT(project.id), project);
+        const puter = getPuter();
+        if (!puter) throw new Error('Puter not ready');
+        await puter.kv.set(KEYS.PROJECT(project.id), project);
 
         // Add to user's project list
         const userProjects = await this.getUserProjects(project.ownerId);
         userProjects.unshift(project.id);
-        await getPuter()?.kv.set(KEYS.USER_PROJECTS(project.ownerId), userProjects);
+        await puter.kv.set(KEYS.USER_PROJECTS(project.ownerId), userProjects);
 
         // Add to public feed if public
         if (project.isPublic) {
@@ -112,7 +124,9 @@ export const db = {
         if (!project) return null;
 
         const updated = { ...project, ...updates, updatedAt: Date.now() };
-        await getPuter()?.kv.set(KEYS.PROJECT(id), updated);
+        const puter = getPuter();
+        if (!puter) return null;
+        await puter.kv.set(KEYS.PROJECT(id), updated);
 
         // Update community feed if visibility changed
         if (updated.isPublic && !project.isPublic) {
@@ -128,12 +142,14 @@ export const db = {
         const project = await this.getProject(id);
         if (!project || project.ownerId !== userId) return false;
 
-        await getPuter()?.kv.delete(KEYS.PROJECT(id));
+        const puter = getPuter();
+        if (!puter) return false;
+        await puter.kv.delete(KEYS.PROJECT(id));
 
         // Remove from user's project list
         const userProjects = await this.getUserProjects(userId);
         const filtered = userProjects.filter(pid => pid !== id);
-        await getPuter()?.kv.set(KEYS.USER_PROJECTS(userId), filtered);
+        await puter.kv.set(KEYS.USER_PROJECTS(userId), filtered);
 
         // Remove from public feed if was public
         if (project.isPublic) {
@@ -145,7 +161,9 @@ export const db = {
 
     async getUserProjects(userId: string): Promise<string[]> {
         try {
-            const data = await getPuter()?.kv.get(KEYS.USER_PROJECTS(userId));
+            const puter = getPuter();
+            if (!puter) return [];
+            const data = await puter.kv.get(KEYS.USER_PROJECTS(userId));
             return (data as string[]) || [];
         } catch {
             return [];
@@ -168,7 +186,9 @@ export const db = {
 
     async getCommunityFeed(limit = 50): Promise<Project[]> {
         try {
-            const projectIds = await getPuter()?.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
+            const puter = getPuter();
+            if (!puter) return [];
+            const projectIds = await puter.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
             const projects: Project[] = [];
 
             for (const id of projectIds.slice(0, limit)) {
@@ -185,20 +205,24 @@ export const db = {
     },
 
     async addToCommunityFeed(project: Project): Promise<void> {
-        const feed = await getPuter()?.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
+        const puter = getPuter();
+        if (!puter) return;
+        const feed = await puter.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
 
         // Remove if already exists (to move to top)
         const filtered = feed.filter(id => id !== project.id);
         filtered.unshift(project.id);
 
         // Keep only latest 100
-        await getPuter()?.kv.set(KEYS.COMMUNITY_FEED, filtered.slice(0, 100));
+        await puter.kv.set(KEYS.COMMUNITY_FEED, filtered.slice(0, 100));
     },
 
     async removeFromCommunityFeed(projectId: string): Promise<void> {
-        const feed = await getPuter()?.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
+        const puter = getPuter();
+        if (!puter) return;
+        const feed = await puter.kv.get(KEYS.COMMUNITY_FEED) as string[] || [];
         const filtered = feed.filter(id => id !== projectId);
-        await getPuter()?.kv.set(KEYS.COMMUNITY_FEED, filtered);
+        await puter.kv.set(KEYS.COMMUNITY_FEED, filtered);
     },
 
     // ============ SEARCH ============
@@ -218,7 +242,9 @@ export const db = {
 
 export const auth = {
     async signIn(): Promise<User> {
-        const puterUser = await getPuter()?.auth.signIn();
+        const puter = getPuter();
+        if (!puter) throw new Error('Puter not ready');
+        const puterUser = await puter.auth.signIn();
 
         let user = await db.getUserByEmail(puterUser.email);
 
@@ -236,12 +262,16 @@ export const auth = {
     },
 
     async signOut(): Promise<void> {
-        await getPuter()?.auth.signOut();
+        const puter = getPuter();
+        if (!puter) return;
+        await puter.auth.signOut();
     },
 
     async getCurrentUser(): Promise<User | null> {
         try {
-            const puterUser = await getPuter()?.auth.getUser();
+            const puter = getPuter();
+            if (!puter) return null;
+            const puterUser = await puter.auth.getUser();
             if (!puterUser) return null;
             return await db.getUserByEmail(puterUser.email);
         } catch {
