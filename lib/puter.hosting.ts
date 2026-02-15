@@ -1,4 +1,5 @@
-import puter from "@heyputer/puter.js";
+const puter = typeof window !== 'undefined' ? window.puter : null;
+
 import {
     createHostingSlug,
     fetchBlobFromUrl, getHostedUrl,

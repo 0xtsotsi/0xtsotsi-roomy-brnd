@@ -1,4 +1,11 @@
-import puter from "@heyputer/puter.js";
+// Puter.js global types
+declare global {
+  interface Window {
+    puter: any;
+  }
+}
+
+const puter = typeof window !== 'undefined' ? window.puter : null;
 
 // Types
 export interface User {
