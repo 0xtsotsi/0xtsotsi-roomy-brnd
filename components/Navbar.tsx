@@ -31,15 +31,15 @@ const Navbar = () => {
                         <Box  className="logo" />
 
                         <span className="name">
-                            Roomify
+                            Roomy.brnd
                         </span>
                     </div>
 
                     <ul className="links">
                         <a href="#">Product</a>
-                        <a href="#">Pricing</a>
-                        <a href="#">Community</a>
-                        <a href="#">Enterprise</a>
+                        <a href="#">Prijzen</a>
+                        <a href="#">Gemeenschap</a>
+                        <a href="#">Zakelijk</a>
                     </ul>
                 </div>
 
