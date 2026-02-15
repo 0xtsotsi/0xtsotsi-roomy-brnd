@@ -1,7 +1,7 @@
 import type { Route } from "./+types/community";
 import Navbar from "../../components/Navbar";
 import { Search, Users, Clock, ArrowUpRight } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { useEffect, useState } from "react";
 import { getCommunityFeed, searchProjects, getCurrentUser } from "../../lib/puter.action";
 import { nl } from "../../lib/translations";
