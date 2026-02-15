@@ -121,6 +121,7 @@ type AuthContext = {
     refreshAuth: () => Promise<boolean>;
     signIn: () => Promise<boolean>;
     signOut: () => Promise<boolean>;
+    puterReady: boolean;
 };
 
 type AuthRequiredModalProps = {

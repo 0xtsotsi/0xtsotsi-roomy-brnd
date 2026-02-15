@@ -37,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script src="https://js.puter.com/v2/" async></script>
+        <script src="https://js.puter.com/v2/"></script>
       </head>
       <body>
         {children}
@@ -56,6 +56,7 @@ const DEFAULT_AUTH_STATE: AuthState = {
 
 export default function App() {
     const [authState, setAuthState] = useState<AuthState>(DEFAULT_AUTH_STATE);
+    const [puterReady, setPuterReady] = useState(false);
 
     const refreshAuth = async () => {
         try {
@@ -75,7 +76,16 @@ export default function App() {
     }
 
     useEffect(() => {
-        refreshAuth()
+        // Wait for Puter.js to load
+        const checkPuter = () => {
+            if (typeof window !== 'undefined' && window.puter) {
+                setPuterReady(true);
+                refreshAuth();
+            } else {
+                setTimeout(checkPuter, 100);
+            }
+        };
+        checkPuter();
     }, []);
 
     const signIn = async () => {
@@ -91,7 +101,7 @@ export default function App() {
   return (
       <main className="min-h-screen bg-background text-foreground relative z-10">
         <Outlet
-            context={{ ...authState, refreshAuth, signIn, signOut }}
+            context={{ ...authState, refreshAuth, signIn, signOut, puterReady }}
         />;
       </main>
   )

@@ -1,4 +1,8 @@
-const puter = typeof window !== 'undefined' ? window.puter : null;
+// Helper to safely get Puter instance
+const getPuter = () => {
+  if (typeof window === 'undefined') return null;
+  return window.puter || null;
+};
 
 import {
     createHostingSlug,
@@ -10,18 +14,18 @@ import {
 } from "./utils";
 
 export const getOrCreateHostingConfig = async (): Promise<HostingConfig | null> => {
-    const existing = (await puter.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
+    const existing = (await getPuter()?.kv.get(HOSTING_CONFIG_KEY)) as HostingConfig | null;
 
     if(existing?.subdomain) return { subdomain: existing.subdomain };
 
     const subdomain = createHostingSlug();
 
     try {
-        const created = await puter.hosting.create(subdomain, '.');
+        const created = await getPuter()?.hosting.create(subdomain, '.');
 
         const record = { subdomain: created.subdomain };
 
-        await puter.kv.set(HOSTING_CONFIG_KEY, record);
+        await getPuter()?.kv.set(HOSTING_CONFIG_KEY, record);
 
         return record;
     } catch (e) {
@@ -51,8 +55,8 @@ export const uploadImageToHosting = async ({ hosting, url, projectId, label }: S
             type: contentType,
         });
 
-        await puter.fs.mkdir(dir, { createMissingParents: true });
-        await puter.fs.write(filePath, uploadFile);
+        await getPuter()?.fs.mkdir(dir, { createMissingParents: true });
+        await getPuter()?.fs.write(filePath, uploadFile);
 
         const hostedUrl = getHostedUrl({ subdomain: hosting.subdomain }, filePath);
 
