@@ -98,6 +98,18 @@ export default function App() {
         return await refreshAuth();
     }
 
+    // Show loading while Puter is initializing
+    if (!puterReady) {
+        return (
+            <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Laden...</p>
+                </div>
+            </main>
+        );
+    }
+
   return (
       <main className="min-h-screen bg-background text-foreground relative z-10">
         <Outlet
