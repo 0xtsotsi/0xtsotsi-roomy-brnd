@@ -22,9 +22,38 @@ interface DesignItem {
     publicPath?: string | null;
     timestamp: number;
     ownerId?: string | null;
+    ownerName?: string | null;
     sharedBy?: string | null;
     sharedAt?: string | null;
     isPublic?: boolean;
+    updatedAt?: number;
+}
+
+// User profile types
+interface UserProfile {
+    user: {
+        id: string;
+        email: string;
+        username: string;
+        bio?: string;
+        avatar?: string;
+        createdAt: number;
+    };
+    projectCount: number;
+    publicProjectCount: number;
+    recentProjects: DesignItem[];
+}
+
+// Community feed types
+interface CommunityProject {
+    id: string;
+    name: string;
+    sourceImage: string;
+    renderedImage?: string;
+    ownerId: string;
+    ownerName: string;
+    createdAt: number;
+    likes?: number;
 }
 
 interface DesignConfig {

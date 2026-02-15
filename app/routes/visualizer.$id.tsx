@@ -1,10 +1,11 @@
 import { useNavigate, useOutletContext, useParams} from "react-router";
 import {useEffect, useRef, useState} from "react";
 import {generate3DView} from "../../lib/ai.action";
-import {Box, Download, RefreshCcw, Share2, X} from "lucide-react";
+import {Box, Download, RefreshCcw, Share2, X, Eye, EyeOff, Globe, Lock} from "lucide-react";
 import Button from "../../components/ui/Button";
-import {createProject, getProjectById} from "../../lib/puter.action";
+import {createProject, getProjectById, updateProject} from "../../lib/puter.action";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
+import { nl } from "../../lib/translations";
 
 const VisualizerId = () => {
     const { id } = useParams();
@@ -18,6 +19,7 @@ const VisualizerId = () => {
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
+    const [shareStatus, setShareStatus] = useState<"idle" | "saving" | "done">("idle");
 
     const handleBack = () => navigate('/');
     const handleExport = () => {
@@ -25,11 +27,29 @@ const VisualizerId = () => {
 
         const link = document.createElement('a');
         link.href = currentImage;
-        link.download = `roomify-${id || 'design'}.png`;
+        link.download = `roomy-${id || 'design'}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
+
+    const handleTogglePrivacy = async () => {
+        if (!project) return;
+        setShareStatus("saving");
+
+        const updated = await updateProject({
+            id,
+            updates: { isPublic: !project.isPublic }
+        });
+
+        if (updated) {
+            setProject(updated);
+            setShareStatus("done");
+            setTimeout(() => setShareStatus("idle"), 1500);
+        } else {
+            setShareStatus("idle");
+        }
+    };
 
     const runGeneration = async (item: DesignItem) => {
         if(!id || !item.sourceImage) return;
@@ -115,11 +135,10 @@ const VisualizerId = () => {
             <nav className="topbar">
                 <div className="brand">
                     <Box className="logo" />
-
-                    <span className="name">Roomify</span>
+                    <span className="name">Roomy.brnd</span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleBack} className="exit">
-                    <X className="icon" /> Exit Editor
+                    <X className="icon" /> Sluiten
                 </Button>
             </nav>
 
@@ -128,22 +147,41 @@ const VisualizerId = () => {
                     <div className="panel-header">
                         <div className="panel-meta">
                             <p>Project</p>
-                            <h2>{project?.name || `Residence ${id}`}</h2>
-                            <p className="note">Created by You</p>
+                            <h2>{project?.name || `Woning ${id}`}</h2>
+                            <p className="note">
+                                {project?.ownerId === userId ? nl.visualizer.createdByYou : `Door ${project?.ownerName || 'Anoniem'}`}
+                            </p>
                         </div>
 
                         <div className="panel-actions">
+                            <Button
+                                size="sm"
+                                onClick={handleTogglePrivacy}
+                                className="privacy-toggle"
+                                disabled={shareStatus === "saving"}
+                                variant={project?.isPublic ? "outline" : "ghost"}
+                            >
+                                {project?.isPublic ? <Globe size={16} /> : <Lock size={16} />}
+                                {project?.isPublic ? nl.visualizer.publicBadge : nl.visualizer.privateBadge}
+                            </Button>
                             <Button
                                 size="sm"
                                 onClick={handleExport}
                                 className="export"
                                 disabled={!currentImage}
                             >
-                                <Download className="w-4 h-4 mr-2" /> Export
+                                <Download className="w-4 h-4 mr-2" /> {nl.visualizer.download}
                             </Button>
-                            <Button size="sm" onClick={() => {}} className="share">
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Share
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    if (project) void runGeneration(project);
+                                }}
+                                className="regenerate"
+                                disabled={isProcessing}
+                            >
+                                <RefreshCcw className={`w-4 h-4 mr-2 ${isProcessing ? 'spin' : ''}`} />
+                                {nl.visualizer.regenerate}
                             </Button>
                         </div>
                     </div>
@@ -163,8 +201,8 @@ const VisualizerId = () => {
                             <div className="render-overlay">
                                 <div className="rendering-card">
                                     <RefreshCcw className="spinner" />
-                                    <span className="title">Rendering...</span>
-                                    <span className="subtitle">Generating your 3D visualization</span>
+                                    <span className="title">{nl.visualizer.generating}</span>
+                                    <span className="subtitle">Uw 3D visualisatie genereren...</span>
                                 </div>
                             </div>
                         )}
@@ -175,10 +213,10 @@ const VisualizerId = () => {
                 <div className="panel compare">
                     <div className="panel-header">
                         <div className="panel-meta">
-                            <p>Comparison</p>
-                            <h3>Before and After</h3>
+                            <p>Vergelijking</p>
+                            <h3>Voor en Na</h3>
                         </div>
-                        <div className="hint">Drag to compare</div>
+                        <div className="hint">Sleep om te vergelijken</div>
                     </div>
 
                     <div className="compare-stage">
