@@ -135,7 +135,7 @@ const VisualizerId = () => {
             <nav className="topbar">
                 <div className="brand">
                     <Box className="logo" />
-                    <span className="name">Roomy.brnd</span>
+                    <span className="name">Roome.brnd</span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleBack} className="exit">
                     <X className="icon" /> Sluiten

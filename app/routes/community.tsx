@@ -1,131 +1,121 @@
 import type { Route } from "./+types/community";
-import Navbar from "../../components/Navbar";
-import { Search, Users, Clock, ArrowUpRight } from "lucide-react";
-import { useNavigate, useOutletContext } from "react-router";
 import { useEffect, useState } from "react";
-import { getCommunityFeed, searchProjects, getCurrentUser } from "../../lib/puter.action";
+import { Eye, Globe, Heart, Clock } from "lucide-react";
+import { useNavigate } from "react-router";
+import Navbar from "../../components/Navbar";
+import { getCommunityFeed } from "../../lib/puter.action";
 import { nl } from "../../lib/translations";
-import Button from "../../components/ui/Button";
+import Logo from "../../components/Logo";
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Gemeenschap - Roomy.brnd" },
-    { name: "description", content: "Ontdek ontwerpen van de Roomy.brnd gemeenschap" },
-  ];
+interface CommunityProject {
+    id: string;
+    name: string;
+    sourceImage: string;
+    renderedImage: string;
+    isPublic: boolean;
+    timestamp: number;
+    ownerId?: string;
 }
 
-export default function CommunityPage() {
-  const navigate = useNavigate();
-  const [projects, setProjects] = useState<DesignItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+export function meta({}: Route.MetaArgs) {
+    return [
+        { title: "Gemeenschap - Roome.brnd" },
+        { name: "description", content: "Bekijk projecten van de Roome.brnd gemeenschap" },
+    ];
+}
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      setLoading(true);
-      const items = await getCommunityFeed(50);
-      setProjects(items);
-      setLoading(false);
+export default function Community() {
+    const navigate = useNavigate();
+    const [projects, setProjects] = useState<CommunityProject[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadCommunityProjects = async () => {
+            setLoading(true);
+            try {
+                const items = await getCommunityFeed(50);
+                setProjects(items);
+            } catch (error) {
+                console.error("Failed to load community projects:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCommunityProjects();
+    }, []);
+
+    const handleProjectClick = (id: string) => {
+        navigate(`/visualizer/${id}`);
     };
 
-    loadProjects();
-  }, []);
+    return (
+        <div className="community-page">
+            <Navbar />
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      const items = await getCommunityFeed(50);
-      setProjects(items);
-    } else {
-      const results = await searchProjects(searchQuery);
-      setProjects(results);
-    }
-  };
-
-  return (
-    <div className="community-page">
-      <Navbar />
-
-      <section className="page-header">
-        <div className="section-inner">
-          <div className="header-content">
-            <div className="icon-wrapper">
-              <Users className="icon" />
-            </div>
-            <div>
-              <h1>{nl.community.title}</h1>
-              <p>{nl.community.subtitle}</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="search-input-wrapper">
-              <Search className="search-icon" size={20} />
-              <input
-                type="text"
-                placeholder={nl.community.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <Button type="submit" variant="primary">
-              Zoeken
-            </Button>
-          </form>
-        </div>
-      </section>
-
-      <section className="content">
-        <div className="section-inner">
-          {loading ? (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p>{nl.actions.loading}</p>
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="empty-state">
-              <Users className="empty-icon" size={48} />
-              <h3>{nl.community.noResults}</h3>
-            </div>
-          ) : (
-            <div className="projects-grid">
-              {projects.map(({ id, name, renderedImage, sourceImage, timestamp, ownerName }) => (
-                <div
-                  key={id}
-                  className="project-card group"
-                  onClick={() => navigate(`/visualizer/${id}`)}
-                >
-                  <div className="preview">
-                    <img
-                      src={renderedImage || sourceImage}
-                      alt={name || "Project"}
-                      loading="lazy"
-                    />
-                    <div className="badge">
-                      <span>{nl.projects.community}</span>
-                    </div>
-                  </div>
-
-                  <div className="card-body">
-                    <div>
-                      <h3>{name || "Project"}</h3>
-                      <div className="meta">
-                        <Clock size={12} />
-                        <span>{new Date(timestamp).toLocaleDateString('nl-NL')}</span>
-                        <span>Door {ownerName || 'Anoniem'}</span>
-                      </div>
-                    </div>
-                    <div className="arrow">
-                      <ArrowUpRight size={18} />
-                    </div>
-                  </div>
+            <section className="community-header">
+                <div className="container">
+                    <Logo size="lg" className="mb-4" />
+                    <h1>{nl.community.title}</h1>
+                    <p>{nl.community.subtitle}</p>
                 </div>
-              ))}
-            </div>
-          )}
+            </section>
+
+            <section className="community-content">
+                <div className="container">
+                    {loading ? (
+                        <div className="loading-state">
+                            <div className="spinner"></div>
+                            <p>{nl.community.loading}</p>
+                        </div>
+                    ) : projects.length === 0 ? (
+                        <div className="empty-state">
+                            <Globe className="icon" />
+                            <h3>{nl.community.emptyTitle}</h3>
+                            <p>{nl.community.emptySubtitle}</p>
+                        </div>
+                    ) : (
+                        <div className="projects-grid">
+                            {projects.map((project) => (
+                                <div
+                                    key={project.id}
+                                    className="community-card group"
+                                    onClick={() => handleProjectClick(project.id)}
+                                >
+                                    <div className="card-image">
+                                        {project.renderedImage ? (
+                                            <img
+                                                src={project.renderedImage}
+                                                alt={project.name}
+                                                className="rendered-image"
+                                            />
+                                        ) : (
+                                            <div className="placeholder-image">
+                                                <Eye className="icon" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="card-content">
+                                        <h3>{project.name}</h3>
+                                        <div className="card-meta">
+                                            {project.isPublic && (
+                                                <span className="badge public">
+                                                    <Globe className="icon" />
+                                                    Openbaar
+                                                </span>
+                                            )}
+                                            <span className="timestamp">
+                                                <Clock className="icon" />
+                                                {new Date(project.timestamp).toLocaleDateString("nl-NL")}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
         </div>
-      </section>
-    </div>
-  );
+    );
 }

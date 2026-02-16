@@ -10,7 +10,7 @@ import { nl } from "../../lib/translations";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Roomy.brnd - AI Architecturale Visualisatie" },
+    { title: "Roome.brnd - AI Architecturale Visualisatie" },
     { name: "description", content: "Visualiseer uw plattegronden in fotorealistische 3D met AI" },
   ];
 }
@@ -81,13 +81,13 @@ export default function Home() {
                       <div className="pulse"></div>
                   </div>
 
-                  <p>Roomy.brnd 2.0 Introductie</p>
+                  <p>Roome.brnd 2.0 Introductie</p>
               </div>
 
-              <h1>Ontwerp prachtige ruimtes op het snel van gedachten met Roomy.brnd</h1>
+              <h1>Ontwerp prachtige ruimtes op het snel van gedachten met Roome.brnd</h1>
 
               <p className="subtitle">
-                  Roomy.brnd is een AI-first ontwerpomgeving die helpt bij het visualiseren, renderen en leveren van architecturische projecten sneller dan ooit.
+                  Roome.brnd is een AI-first ontwerpomgeving die helpt bij het visualiseren, renderen en leveren van architecturale projecten sneller dan ooit.
               </p>
 
               <div className="actions">

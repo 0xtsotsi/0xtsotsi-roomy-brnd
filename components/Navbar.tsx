@@ -2,6 +2,7 @@ import {Box, User, Menu, X} from "lucide-react";
 import Button from "./ui/Button";
 import {useOutletContext, useNavigate} from "react-router";
 import {useState} from "react";
+import Logo from "./Logo";
 
 const Navbar = () => {
     const { isSignedIn, userName, userId, signIn, signOut } = useOutletContext<AuthContext>()
@@ -28,8 +29,8 @@ const Navbar = () => {
     const navLinks = [
         { label: "Home", href: "/" },
         { label: "Gemeenschap", href: "/community" },
-        { label: "Prijzen", href: "#pricing" },
-        { label: "Zakelijk", href: "#enterprise" },
+        { label: "Prijzen", href: "/pricing" },
+        { label: "Zakelijk", href: "/business" },
     ];
 
     return (
@@ -37,8 +38,7 @@ const Navbar = () => {
             <nav className="inner">
                 <div className="left">
                     <div className="brand" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-                        <Box className="logo" />
-                        <span className="name">Roomy.brnd</span>
+                        <Logo />
                     </div>
 
                     <ul className={`links ${mobileMenuOpen ? 'open' : ''}`}>

@@ -10,8 +10,8 @@ import { useRef } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Profiel - Roomy.brnd" },
-    { name: "description", content: "Gebruikersprofiel op Roomy.brnd" },
+    { title: "Profiel - Roome.brnd" },
+    { name: "description", content: "Gebruikersprofiel op Roome.brnd" },
   ];
 }
 
